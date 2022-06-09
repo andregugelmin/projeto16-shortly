@@ -1,10 +1,16 @@
 import { Router } from 'express';
-import { postSignup } from '../controllers/authenticationController.js';
-import { validateSignup } from '../middlewares/authenticationMiddleware.js';
+import {
+    postSignin,
+    postSignup,
+} from '../controllers/authenticationController.js';
+import {
+    validateSignin,
+    validateSignup,
+} from '../middlewares/authenticationMiddleware.js';
 
 const authenticationRouter = Router();
 
 authenticationRouter.post('/singup', validateSignup, postSignup);
-authenticationRouter.post('/signin');
+authenticationRouter.post('/signin', validateSignin, postSignin);
 
 export default authenticationRouter;
