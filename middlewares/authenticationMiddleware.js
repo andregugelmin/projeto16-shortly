@@ -23,7 +23,7 @@ export function validateSignup(req, res, next) {
     next();
 }
 
-export function validateSignin(req, res, next) {
+export async function validateSignin(req, res, next) {
     const user = req.body;
 
     const validation = signInSchema.validate(user);
@@ -38,7 +38,7 @@ export function validateSignin(req, res, next) {
     }
 
     try {
-        const query = db.query('SELECT * FROM users WHERE email = $1;', [
+        const query = await db.query('SELECT * FROM users WHERE email = $1;', [
             user.email,
         ]);
         if (
