@@ -22,7 +22,7 @@ export async function postShortUrl(req, res) {
 
         await db.query(
             `INSERT INTO "shortUrls"(urlId, url, userId, visitsCount) VALUES ($1, $2, $3, $4)`,
-            [queryUrl.id, shortId, session.id, 0]
+            [queryUrl.rows[0].id, shortId, session.id, 0]
         );
 
         return res
@@ -52,9 +52,9 @@ export async function getUrl(req, res) {
         }
 
         return res.status(200).send({
-            id: query.id,
-            shortUrl: query.shortUrls,
-            url: query.url,
+            id: query.rows[0].id,
+            shortUrl: query.rows[0].shortUrls,
+            url: query.rows[0].url,
         });
     } catch (e) {
         console.error(chalk.bold.red('Could not get url'), e);
@@ -77,11 +77,11 @@ export async function redirectToUrl(req, res) {
             res.sendStatus(404);
         }
 
-        const viewCount = Number(query.visitsCount) + 1;
+        const viewCount = Number(query.rows[0].visitsCount) + 1;
 
         await db.query(
             `UPDATE "shortUrls" SET "visitsCount" = $1 WHERE id = $2;`,
-            [viewCount, query.id]
+            [viewCount, query.rows[0].id]
         );
 
         return res.redirect(query.url);
