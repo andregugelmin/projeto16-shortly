@@ -7,22 +7,24 @@ export async function postShortUrl(req, res) {
     const session = res.locals.session;
     const { url } = res.locals.url;
 
-    const shortId = generateShortId();
-
+    const shortId = await generateShortId();
+    console.log({ shortId });
     try {
         let queryUrl = await db.query(`SELECT * FROM urls WHERE url = $1;`, [
             url,
         ]);
 
         if (queryUrl.rowCount === 0) {
-            queryUrl = await db.query(`INSERT INTO urls( url) VALUES ($1)`, [
+            await db.query(`INSERT INTO urls( url) VALUES ($1)`, [url]);
+
+            queryUrl = await db.query(`SELECT * FROM urls WHERE url = $1;`, [
                 url,
             ]);
         }
 
         await db.query(
-            `INSERT INTO "shortUrls"(urlId, url, userId, visitsCount) VALUES ($1, $2, $3, $4)`,
-            [queryUrl.rows[0].id, shortId, session.id, 0]
+            `INSERT INTO "shortUrls"("urlId", url, "userId", "visitsCount") VALUES ($1, $2, $3, $4)`,
+            [queryUrl.rows[0].id, shortId, session.userId, 0]
         );
 
         return res
@@ -48,14 +50,11 @@ export async function getUrl(req, res) {
         );
 
         if (query.rowCount === 0) {
-            res.sendStatus(404);
+            return res.sendStatus(404);
         }
 
-        return res.status(200).send({
-            id: query.rows[0].id,
-            shortUrl: query.rows[0].shortUrls,
-            url: query.rows[0].url,
-        });
+        console.log(query.rows[0]);
+        return res.status(200).send({ ...query.rows[0] });
     } catch (e) {
         console.error(chalk.bold.red('Could not get url'), e);
         return res.sendStatus(500);
@@ -74,17 +73,17 @@ export async function redirectToUrl(req, res) {
         );
 
         if (query.rowCount === 0) {
-            res.sendStatus(404);
+            return res.sendStatus(404);
         }
 
-        const viewCount = Number(query.rows[0].visitsCount) + 1;
+        const viewCount = query.rows[0].visitsCount + 1;
 
         await db.query(
             `UPDATE "shortUrls" SET "visitsCount" = $1 WHERE id = $2;`,
             [viewCount, query.rows[0].id]
         );
 
-        return res.redirect(query.url);
+        return res.redirect(query.rows[0].url);
     } catch (e) {
         console.error(chalk.bold.red('Could not redirect to url'), e);
         return res.sendStatus(500);

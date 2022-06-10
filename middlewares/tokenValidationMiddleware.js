@@ -20,7 +20,7 @@ export async function validToken(req, res, next) {
 
         if (query.rowCount === 0) return res.sendStatus(401);
 
-        res.locals.session = query;
+        res.locals.session = query.rows[0];
     } catch (e) {
         return res.status(500).send('Could not validate session ' + e);
     }

@@ -10,7 +10,7 @@ import {
 
 const authenticationRouter = Router();
 
-authenticationRouter.post('/singup', validateSignup, postSignup);
+authenticationRouter.post('/signup', validateSignup, postSignup);
 authenticationRouter.post('/signin', validateSignin, postSignin);
 
 export default authenticationRouter;

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import authenticationRouter from './authenticationRouter.js';
-import statusRouter from './statusRouter';
+import statusRouter from './statusRouter.js';
 import urlRouter from './urlRouter.js';
 
 const router = Router();

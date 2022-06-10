@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt';
-import uuid from 'uuid';
+import { v4 as uuid } from 'uuid';
 import chalk from 'chalk';
 
 import db from '../config/db.js';
@@ -22,13 +22,14 @@ export async function postSignup(req, res) {
 }
 
 export async function postSignin(req, res) {
-    const userId = res.locals.userId;
+    const { id } = res.locals.userId;
     const token = uuid();
+
     try {
-        await db.query(`INSERT INTO sessions( userId, token) VALUES ($1, $2)`, [
-            userId,
-            token,
-        ]);
+        await db.query(
+            `INSERT INTO sessions("userId", token) VALUES ($1, $2)`,
+            [id, token]
+        );
 
         res.send({ token }).status(200);
     } catch (e) {
