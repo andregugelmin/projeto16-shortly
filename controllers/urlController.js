@@ -10,7 +10,7 @@ export async function postShortUrl(req, res) {
     const shortId = generateShortId();
 
     try {
-        let queryUrl = await db.query('SELECT * FROM urls WHERE url = $1;', [
+        let queryUrl = await db.query(`SELECT * FROM urls WHERE url = $1;`, [
             url,
         ]);
 
@@ -25,11 +25,79 @@ export async function postShortUrl(req, res) {
             [queryUrl.id, shortId, session.id, 0]
         );
 
-        res.send({
-            shortUrl: shortId,
-        }).status(201);
+        return res
+            .send({
+                shortUrl: shortId,
+            })
+            .status(201);
     } catch (e) {
         console.error(chalk.bold.red('Could not post short url'), e);
+        return res.sendStatus(500);
+    }
+}
+
+export async function getUrl(req, res) {
+    const { id } = req.params;
+
+    try {
+        const query = await db.query(
+            `SELECT "shortUrls".id, "shortUrls".url as "shortUrl", urls.url FROM "shortUrls" 
+            JOIN urls ON "shortUrls"."urlId" = "urls".id 
+            WHERE "shortUrls".id = $1`,
+            [id]
+        );
+
+        if (query.rowCount === 0) {
+            res.sendStatus(404);
+        }
+
+        return res.status(200).send({
+            id: query.id,
+            shortUrl: query.shortUrls,
+            url: query.url,
+        });
+    } catch (e) {
+        console.error(chalk.bold.red('Could not get url'), e);
+        return res.sendStatus(500);
+    }
+}
+
+export async function redirectToUrl(req, res) {
+    const { shortUrl } = req.params;
+
+    try {
+        const query = await db.query(
+            `SELECT "shortUrls".id, "shortUrls".url as "shortUrl", "shortUrls"."visitsCount", urls.url FROM "shortUrls" 
+        JOIN urls ON "shortUrls"."urlId" = "urls".id 
+        WHERE "shortUrls".url = $1`,
+            [shortUrl]
+        );
+
+        if (query.rowCount === 0) {
+            res.sendStatus(404);
+        }
+
+        const viewCount = Number(query.visitsCount) + 1;
+
+        await db.query(
+            `UPDATE "shortUrls" SET "visitsCount" = $1 WHERE id = $2;`,
+            [viewCount, query.id]
+        );
+
+        return res.redirect(query.url);
+    } catch (e) {
+        console.error(chalk.bold.red('Could not redirect to url'), e);
+        return res.sendStatus(500);
+    }
+}
+
+export async function deleteUrl(req, res) {
+    const { id } = req.params;
+
+    try {
+        await db.query(`DELETE FROM "shortUrls" WHERE id = $1;`, [id]);
+    } catch (e) {
+        console.error(chalk.bold.red('Could not delete url'), e);
         return res.sendStatus(500);
     }
 }

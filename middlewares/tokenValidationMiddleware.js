@@ -22,7 +22,7 @@ export async function validToken(req, res, next) {
 
         res.locals.session = query;
     } catch (e) {
-        return res.status(500).send('Could not valid session ' + e);
+        return res.status(500).send('Could not validate session ' + e);
     }
 
     next();

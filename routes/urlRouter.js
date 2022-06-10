@@ -1,12 +1,18 @@
 import { Router } from 'express';
-import { postShortUrl } from '../controllers/urlController.js';
-import { validateUrl } from '../middlewares/urlMiddleware.js';
+import {
+    deleteUrl,
+    getUrl,
+    postShortUrl,
+    redirectToUrl,
+} from '../controllers/urlController.js';
+import { validToken } from '../middlewares/tokenValidationMiddleware.js';
+import { validateUrl, validateUserUrl } from '../middlewares/urlMiddleware.js';
 
 const urlRouter = Router();
 
-urlRouter.post('/urls/shorten', validateUrl, postShortUrl);
-urlRouter.get('/urls/:id');
-urlRouter.get('/urls/open/:shortUrl');
-urlRouter.delete('/urls/:id');
+urlRouter.post('/urls/shorten', validToken, validateUrl, postShortUrl);
+urlRouter.get('/urls/:id', getUrl);
+urlRouter.get('/urls/open/:shortUrl', redirectToUrl);
+urlRouter.delete('/urls/:id', validToken, validateUserUrl, deleteUrl);
 
 export default urlRouter;
